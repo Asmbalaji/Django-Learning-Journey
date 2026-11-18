@@ -1,20 +1,55 @@
 
+{% load static %}
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Employee Registration</title>
+
+    <link rel="stylesheet" href="{% static 'employees/style.css' %}">
 </head>
+
 <body>
 
-    <h1>Employee Registration Form</h1>
+    <div class="container">
 
-    <form method="POST">
-        {% csrf_token %}
+        <header>
+            <h1>Employee Management System</h1>
+            <p>Register a new employee</p>
+        </header>
 
-        {{ form.as_p }}
+        <div class="form-card">
 
-        <button type="submit">Register Employee</button>
-    </form>
+            <h2>Employee Registration Form</h2>
+
+            <form method="POST">
+                {% csrf_token %}
+
+                <div class="form-fields">
+                    {{ form.as_p }}
+                </div>
+
+                <button type="submit" class="submit-btn">
+                        {% if employee %}
+                            Update Employee
+                        {% else %}
+                            Register Employee
+                        {% endif %}
+
+                </button>
+
+                <a href="{% url 'employee_list' %}" class="back-btn">
+                    Back to Employee List
+                </a>
+
+            </form>
+
+        </div>
+
+    </div>
 
 </body>
 </html>
