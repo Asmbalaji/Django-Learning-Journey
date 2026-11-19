@@ -1,33 +1,25 @@
 
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import EmployeeForm
-from .models import Employee
-from django.shortcuts import render, redirect
+from django.views.decorators.http import require_POST
+from django.db.models import Sum, Count, Q
 from .forms import EmployeeForm
 from .models import Employee
 
 
 def register_employee(request):
-
     if request.method == 'POST':
         form = EmployeeForm(request.POST)
 
         if form.is_valid():
             form.save()
             return redirect('employee_list')
-
     else:
         form = EmployeeForm()
 
-    return render(
-        request,
-        'employees/register.html',
-        {'form': form}
-    )
+    return render(request, 'employees/register.html', {'form': form})
 
 
 def employee_list(request):
-
     employees = Employee.objects.all()
 
     return render(
@@ -35,10 +27,6 @@ def employee_list(request):
         'employees/employee_list.html',
         {'employees': employees}
     )
-
-
-from django.shortcuts import get_object_or_404
-from django.views.decorators.http import require_POST
 
 
 def edit_employee(request, pk):
@@ -50,7 +38,6 @@ def edit_employee(request, pk):
         if form.is_valid():
             form.save()
             return redirect('employee_list')
-
     else:
         form = EmployeeForm(instance=employee)
 
@@ -68,22 +55,55 @@ def delete_employee(request, pk):
 
     return redirect('employee_list')
 
-def edit_employee(request, pk):
+def employee_performance(request):
 
-    employee = get_object_or_404(Employee, pk=pk)
+    employees = Employee.objects.prefetch_related('work_logs')
 
-    if request.method == 'POST':
-        form = EmployeeForm(request.POST, instance=employee)
+    performance_data = []
 
-        if form.is_valid():
-            form.save()
-            return redirect('employee_list')
+    for employee in employees:
 
-    else:
-        form = EmployeeForm(instance=employee)
+        logs = employee.work_logs.all()
+
+        total_hours = logs.aggregate(
+            total=Sum('hours_worked')
+        )['total'] or 0
+
+        total_tasks = logs.aggregate(
+            total=Sum('tasks_assigned')
+        )['total'] or 0
+
+        completed_tasks = logs.aggregate(
+            total=Sum('tasks_completed')
+        )['total'] or 0
+
+        total_days = logs.count()
+
+        present_days = logs.filter(
+            attendance='PRESENT'
+        ).count()
+
+        attendance_percentage = (
+            (present_days / total_days) * 100
+            if total_days else 0
+        )
+
+        performance = (
+            (completed_tasks / total_tasks) * 100
+            if total_tasks else 0
+        )
+
+        performance_data.append({
+            'employee': employee,
+            'total_hours': total_hours,
+            'total_tasks': total_tasks,
+            'completed_tasks': completed_tasks,
+            'attendance_percentage': round(attendance_percentage, 2),
+            'performance': round(performance, 2),
+        })
 
     return render(
         request,
-        'employees/register.html',
-        {'form': form, 'employee': employee}
+        'employees/performance.html',
+        {'performance_data': performance_data}
     )

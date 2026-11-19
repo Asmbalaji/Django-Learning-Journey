@@ -1,0 +1,287 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Performance Dashboard</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 30px;
+            font-family: Arial, sans-serif;
+            background: #f3f5f9;
+            color: #1e293b;
+        }
+
+        .header {
+            background: #1e293b;
+            color: white;
+            padding: 25px 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            margin: 0 0 8px;
+        }
+
+        .header p {
+            color: #cbd5e1;
+            margin: 0;
+        }
+
+        .top-link {
+            display: inline-block;
+            margin-top: 15px;
+            color: #93c5fd;
+            text-decoration: none;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .section-title {
+            margin-bottom: 20px;
+        }
+
+        .employee-card {
+            background: white;
+            padding: 25px;
+            margin-bottom: 22px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        }
+
+        .employee-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .employee-header h3 {
+            margin: 0 0 6px;
+            font-size: 21px;
+        }
+
+        .department {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-box {
+            background: #f8fafc;
+            padding: 17px;
+            border-radius: 9px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .stat-box p {
+            color: #64748b;
+            margin: 0 0 10px;
+            font-size: 14px;
+        }
+
+        .stat-box h2 {
+            margin: 0;
+            font-size: 23px;
+            color: #1e293b;
+        }
+
+        .progress-section {
+            margin-top: 20px;
+        }
+
+        .progress-heading {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 9px;
+            font-weight: bold;
+        }
+
+        .progress-bar {
+            height: 12px;
+            background: #e2e8f0;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 20px;
+        }
+
+        .performance-fill {
+            background: #2563eb;
+        }
+
+        .attendance-fill {
+            background: #16a34a;
+        }
+
+        .status {
+            padding: 7px 13px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .excellent {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .good {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .improve {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .empty {
+            background: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 15px;
+            }
+
+            .employee-card {
+                padding: 17px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <h1>Employee Performance Dashboard</h1>
+        <p>Monitor employee attendance, working hours and productivity.</p>
+
+        <a href="{% url 'employee_list' %}" class="top-link">
+            ← Back to Employee List
+        </a>
+    </div>
+
+    <h2 class="section-title">Employee Work Reports</h2>
+
+    {% for item in performance_data %}
+
+    <div class="employee-card">
+
+        <div class="employee-header">
+            <div>
+                <h3>{{ item.employee.name }}</h3>
+                <span class="department">
+                    {{ item.employee.get_department_display }}
+                    | {{ item.employee.designation }}
+                </span>
+            </div>
+
+            {% if item.performance >= 80 %}
+                <span class="status excellent">Excellent</span>
+            {% elif item.performance >= 50 %}
+                <span class="status good">Good</span>
+            {% else %}
+                <span class="status improve">Needs Improvement</span>
+            {% endif %}
+        </div>
+
+        <div class="stats">
+
+            <div class="stat-box">
+                <p>Total Working Hours</p>
+                <h2>{{ item.total_hours }}</h2>
+            </div>
+
+            <div class="stat-box">
+                <p>Tasks Assigned</p>
+                <h2>{{ item.total_tasks }}</h2>
+            </div>
+
+            <div class="stat-box">
+                <p>Tasks Completed</p>
+                <h2>{{ item.completed_tasks }}</h2>
+            </div>
+
+            <div class="stat-box">
+                <p>Attendance</p>
+                <h2>{{ item.attendance_percentage }}%</h2>
+            </div>
+
+        </div>
+
+        <div class="progress-section">
+
+            <div class="progress-heading">
+                <span>Task Performance</span>
+                <span>{{ item.performance }}%</span>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill performance-fill"
+                     style="width: {{ item.performance }}%;">
+                </div>
+            </div>
+
+        </div>
+
+        <div class="progress-section">
+
+            <div class="progress-heading">
+                <span>Attendance Rate</span>
+                <span>{{ item.attendance_percentage }}%</span>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill attendance-fill"
+                     style="width: {{ item.attendance_percentage }}%;">
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    {% empty %}
+
+        <div class="empty">
+            <h3>No Employee Records Found</h3>
+            <p>Add employee work logs to see performance reports.</p>
+        </div>
+
+    {% endfor %}
+
+</div>
+
+</body>
+</html>
