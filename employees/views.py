@@ -1,6 +1,8 @@
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_POST
+from django.db.models import Sum, Count
+from .models import Employee, EmployeeWorkLog
 from django.db.models import Sum, Count, Q
 from .forms import EmployeeForm
 from .models import Employee
@@ -46,6 +48,7 @@ def edit_employee(request, pk):
         'employees/edit_employee.html',
         {'form': form, 'employee': employee}
     )
+
 
 
 @require_POST
@@ -107,3 +110,40 @@ def employee_performance(request):
         'employees/performance.html',
         {'performance_data': performance_data}
     )
+
+def employee_dashboard(request):
+
+        total_employees = Employee.objects.count()
+
+        total_hours = EmployeeWorkLog.objects.aggregate(
+            total=Sum('hours_worked')
+        )['total'] or 0
+
+        total_tasks = EmployeeWorkLog.objects.aggregate(
+            total=Sum('tasks_assigned')
+        )['total'] or 0
+
+        completed_tasks = EmployeeWorkLog.objects.aggregate(
+            total=Sum('tasks_completed')
+        )['total'] or 0
+
+        departments = Employee.objects.values(
+            'department'
+        ).annotate(total=Count('id'))
+
+        performance = 0
+        if total_tasks > 0:
+            performance = round(
+                (completed_tasks / total_tasks) * 100, 2
+            )
+
+        context = {
+            'total_employees': total_employees,
+            'total_hours': total_hours,
+            'total_tasks': total_tasks,
+            'completed_tasks': completed_tasks,
+            'performance': performance,
+            'departments': departments,
+        }
+
+        return render(request, 'employees/dashboard.html', context)
